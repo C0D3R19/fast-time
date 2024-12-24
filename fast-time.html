@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Time Progress Tracker</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(to bottom right, #3730a3, #581c87, #1e3a8a);
+            color: #e0e7ff;
+            padding: 2rem;
+        }
+
+        .card {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 1rem;
+            padding: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .progress-item {
+            background: rgba(79, 70, 229, 0.2);
+            padding: 1rem;
+            border-radius: 0.5rem;
+        }
+
+        .progress-bar {
+            height: 1rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            transition: width 1s ease-out;
+        }
+
+        .title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1 class="title">Time Progress Tracker</h1>
+        <div class="progress-container" id="progressContainer"></div>
+    </div>
+
+    <script>
+        function updateProgress() {
+            const now = new Date();
+            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+            const timeData = {
+                Day: {
+                    total: 24 * 60 * 60 * 1000,
+                    elapsed: Date.now() - startOfDay.getTime()
+                },
+                Week: {
+                    total: 7 * 24 * 60 * 60 * 1000,
+                    elapsed: Date.now() - startOfWeek.getTime()
+                },
+                Month: {
+                    total: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() * 24 * 60 * 60 * 1000,
+                    elapsed: Date.now() - startOfMonth.getTime()
+                },
+                Year: {
+                    total: (new Date(now.getFullYear(), 11, 31) - new Date(now.getFullYear(), 0, 1)),
+                    elapsed: Date.now() - startOfYear.getTime()
+                }
+            };
+
+            const container = document.getElementById('progressContainer');
+            container.innerHTML = '';
+
+            for (const [period, data] of Object.entries(timeData)) {
+                const percentage = (data.elapsed / data.total) * 100;
+                const item = document.createElement('div');
+                item.className = 'progress-item';
+                item.innerHTML = `
+                    <h3>${period}</h3>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <p style="text-align: right">${percentage.toFixed(1)}%</p>
+                `;
+                container.appendChild(item);
+            }
+        }
+
+        updateProgress();
+        setInterval(updateProgress, 1000);
+    </script>
+</body>
+</html>

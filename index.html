@@ -149,29 +149,61 @@
     </div>
 
     <script>
-        function updateProgress() {
-            const now = new Date();
-            const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-            const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
-            const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-            const startOfYear = new Date(now.getFullYear(), 0, 1);
+        const startTimes = {
+            Day: null,
+            Week: null,
+            Month: null,
+            Year: null
+        };
 
+        function resetStartTime(period) {
+            const now = new Date();
+            switch(period) {
+                case 'Day':
+                    startTimes.Day = now;
+                    break;
+                case 'Week':
+                    startTimes.Week = now;
+                    break;
+                case 'Month':
+                    startTimes.Month = now;
+                    break;
+                case 'Year':
+                    startTimes.Year = now;
+                    break;
+            }
+        }
+
+        function initializeStartTimes() {
+            const now = new Date();
+            startTimes.Day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            startTimes.Week = new Date(now.setDate(now.getDate() - now.getDay()));
+            startTimes.Month = new Date(now.getFullYear(), now.getMonth(), 1);
+            startTimes.Year = new Date(now.getFullYear(), 0, 1);
+        }
+
+        function updateProgress() {
+            if (!startTimes.Day) {
+                initializeStartTimes();
+            }
+
+            const now = new Date();
             const timeData = {
                 Day: {
                     total: 24 * 60 * 60 * 1000,
-                    elapsed: Date.now() - startOfDay.getTime()
+                    elapsed: Date.now() - startTimes.Day.getTime()
                 },
                 Week: {
                     total: 7 * 24 * 60 * 60 * 1000,
-                    elapsed: Date.now() - startOfWeek.getTime()
+                    elapsed: Date.now() - startTimes.Week.getTime()
                 },
                 Month: {
-                    total: new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() * 24 * 60 * 60 * 1000,
-                    elapsed: Date.now() - startOfMonth.getTime()
+                    total: 30 * 24 * 60 * 60 * 1000, // Using 30 days for simplicity
+                    elapsed: Date.now() - startTimes.Month.getTime()
                 },
                 Year: {
-                    total: (new Date(now.getFullYear(), 11, 31) - new Date(now.getFullYear(), 0, 1)),
-                    elapsed: Date.now() - startOfYear.getTime()
+                    total: 365 * 24 * 60 * 60 * 1000, // Using 365 days for simplicity
+                    elapsed: Date.now() - startTimes.Year.getTime()
                 }
             };
 
@@ -179,15 +211,24 @@
             container.innerHTML = '';
 
             for (const [period, data] of Object.entries(timeData)) {
-                const percentage = Math.min(100, Math.max(0, (data.elapsed / data.total) * 100));
+                const percentage = (data.elapsed / data.total) * 100;
+                
+                // Reset if 100% is reached
+                if (percentage >= 100) {
+                    resetStartTime(period);
+                    data.elapsed = 0;
+                }
+
+                const displayPercentage = Math.min(100, Math.max(0, percentage));
+                
                 const item = document.createElement('div');
                 item.className = 'progress-item';
                 item.innerHTML = `
                     <h3>${period}</h3>
                     <div class="progress-bar">
-                        <div class="progress-fill" style="width: ${percentage}%"></div>
+                        <div class="progress-fill" style="width: ${displayPercentage}%"></div>
                     </div>
-                    <div class="percentage">${percentage.toFixed(1)}%</div>
+                    <div class="percentage">${displayPercentage.toFixed(1)}%</div>
                 `;
                 container.appendChild(item);
             }
